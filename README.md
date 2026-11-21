@@ -173,7 +173,6 @@ scamshield/
 ├── start.bat              # double-click to run on Windows
 ├── start.sh               # same for Mac/Linux
 ├── .env.example           # documents that no API keys are required
-├── ANTIGRAVITY_PROMPT.md  # master prompt used to build this with Google Antigravity
 └── data.json              # auto-created on first run (seeded community reports)
 ```
 
