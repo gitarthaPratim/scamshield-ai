@@ -19,6 +19,10 @@ from ml_model import ml_scam_probability, get_evaluation, CHAMPION
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PUBLIC_DIR = os.path.join(BASE_DIR, "public")
 DATA_FILE = os.path.join(BASE_DIR, "data.json")
+if os.environ.get("VERCEL") or not os.access(BASE_DIR, os.W_OK):
+    # Serverless hosts (e.g. Vercel) have a read-only project directory;
+    # keep the data file in /tmp there instead. Local/Render runs are unaffected.
+    DATA_FILE = os.path.join("/tmp", "data.json")
 PORT = int(os.environ.get("PORT", "8000"))
 
 _lock = threading.Lock()
