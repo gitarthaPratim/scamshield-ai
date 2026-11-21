@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ScamShield AI — Fraud Message Checker &amp; Phishing URL Scanner</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap topbar-in">
+    <div class="logo">🛡️ ScamShield <span class="ai">AI</span></div>
+    <nav>
+      <a href="#checker">Analyzer</a>
+      <a href="#url-scanner">URL Scanner</a>
+      <a href="#dashboard">Dashboard</a>
+      <a href="#history">History</a>
+      <a href="#alerts">Community Alerts</a>
+      <a href="#awareness">Awareness</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <h1>Got a suspicious message or link?<br>Check it before you click.</h1>
+    <p>ScamShield AI checks SMS, WhatsApp messages, emails and suspicious URLs that pretend to be from
+       banks, delivery services and government offices — and explains, in simple words,
+       exactly why something looks dangerous.</p>
+    <div class="row center">
+      <a class="btn big" href="#checker">Check a Message</a>
+      <a class="btn big ghost-light" href="#url-scanner">Scan a URL</a>
+    </div>
+  </div>
+</section>
+
+<main class="wrap">
+
+  <!-- ======================= MESSAGE ANALYZER ======================= -->
+  <section id="checker" class="card">
+    <h2>🔍 Message Analyzer</h2>
+    <p class="muted">Paste any SMS, WhatsApp message or email below. The backend scores it with explainable rules
+       and a small machine-learning model, and classifies the scam category.</p>
+
+    <label class="lbl" for="msgType">Message type</label>
+    <div class="row">
+      <select id="msgType" class="narrow">
+        <option value="SMS">SMS</option>
+        <option value="WhatsApp">WhatsApp</option>
+        <option value="Email">Email</option>
+      </select>
+      <span id="senderWrap" class="hidden grow">
+        <input type="text" id="senderInput" placeholder="Sender email (optional) e.g. sbi-alerts@gmail.com">
+      </span>
+    </div>
+    <textarea id="msgInput" rows="5" placeholder="Paste the suspicious message here…"></textarea>
+    <div class="row">
+      <button class="btn" id="analyzeBtn">Check This Message</button>
+      <button class="btn ghost" id="sampleScamBtn">Try a Sample Scam</button>
+      <button class="btn ghost" id="sampleSafeBtn">Try a Safe Message</button>
+    </div>
+    <p class="error" id="analyzeError"></p>
+
+    <div id="result" class="result hidden">
+      <div class="score-box">
+        <div class="score-circle" id="scoreCircle"><span id="scoreNum">0</span><small>/ 100</small></div>
+        <div>
+          <div class="verdict" id="verdictText">—</div>
+          <div class="chips">
+            <span class="chip" id="categoryChip">Category: —</span>
+            <span class="chip ml" id="mlChip">ML signal: —</span>
+          </div>
+          <div class="muted">Final score is rule-based and explainable. The ML signal is a supporting
+             Naive Bayes probability trained on sample scam/safe messages.</div>
+        </div>
+      </div>
+      <h3>🚩 Red flags found</h3>
+      <ul id="reasonsList" class="reasons"></ul>
+      <h3>✅ What you should do</h3>
+      <ul id="adviceList" class="advice"></ul>
+    </div>
+  </section>
+
+  <!-- ======================= URL SCANNER ======================= -->
+  <section id="url-scanner" class="card">
+    <h2>🔗 Phishing URL Scanner</h2>
+    <p class="muted">Paste a suspicious link. We only examine the address as text — <strong>we never open or visit it.</strong></p>
+    <input type="text" id="urlInput" placeholder="Paste the suspicious URL here… e.g. http://bit.ly/sbi-kyc-verify">
+    <div class="row">
+      <button class="btn" id="scanBtn">Scan This URL</button>
+      <button class="btn ghost" id="sampleBadUrlBtn">Try a Phishing URL</button>
+      <button class="btn ghost" id="sampleGoodUrlBtn">Try a Safe URL</button>
+    </div>
+    <p class="error" id="urlError"></p>
+
+    <div id="urlResult" class="result hidden">
+      <div class="score-box">
+        <div class="score-circle" id="urlScoreCircle"><span id="urlScoreNum">0</span><small>/ 100</small></div>
+        <div>
+          <div class="verdict" id="urlVerdictText">—</div>
+          <div class="muted" id="urlEcho"></div>
+        </div>
+      </div>
+      <h3>🚩 Red flags found</h3>
+      <ul id="urlReasonsList" class="reasons"></ul>
+      <h3>✅ What you should do</h3>
+      <ul id="urlAdviceList" class="advice"></ul>
+    </div>
+  </section>
+
+  <!-- ======================= DASHBOARD ======================= -->
+  <section id="dashboard" class="card">
+    <h2>📊 Security Dashboard</h2>
+    <p class="muted">Real numbers from this app's own backend data — analyses, scans and reports actually made here.</p>
+    <div class="stats">
+      <div class="stat"><span class="num" id="statChecked">–</span><span class="lbl">Total Analyses</span></div>
+      <div class="stat"><span class="num danger" id="statHigh">–</span><span class="lbl">Fraud / High-Risk Detected</span></div>
+      <div class="stat"><span class="num" id="statUrls">–</span><span class="lbl">URLs Scanned</span></div>
+      <div class="stat"><span class="num" id="statReports">–</span><span class="lbl">Community Reports</span></div>
+    </div>
+    <h3>Scam categories seen so far</h3>
+    <div id="catChart" class="chart"><p class="muted">No data yet — run a check or a scan.</p></div>
+  </section>
+
+  <!-- ======================= REPORT ======================= -->
+  <section class="card" id="report">
+    <h2>📢 Report a Scam</h2>
+    <p class="muted">Received a fraud message? Report it here. Your report appears in Community Alerts and warns everyone else.</p>
+    <form id="reportForm">
+      <textarea id="reportMsg" rows="3" placeholder="Paste the scam message you received…" required></textarea>
+      <div class="row">
+        <select id="reportCategory">
+          <option>Bank KYC Fraud</option>
+          <option>Government Impersonation</option>
+          <option>Delivery / COD Fraud</option>
+          <option>Fake Job Offer</option>
+          <option>Electricity Bill Fraud</option>
+          <option>Lottery / Prize Fraud</option>
+          <option>Other Scam</option>
+        </select>
+        <input type="text" id="reportContact" placeholder="Where did it come from? (optional) e.g. SMS from VM-XXXXXX">
+      </div>
+      <button class="btn" type="submit">Submit Report</button>
+      <p class="ok" id="reportOk"></p>
+      <p class="error" id="reportError"></p>
+    </form>
+  </section>
+
+  <!-- ======================= COMMUNITY ALERTS ======================= -->
+  <section class="card" id="alerts">
+    <h2>🚨 Community Alerts</h2>
+    <p class="muted">Latest scams reported by users — loaded live from the backend. If you see one of these, do not engage.</p>
+    <div id="alertsList" class="alerts"><p class="muted">Loading alerts…</p></div>
+  </section>
+
+  <!-- ======================= HISTORY ======================= -->
+  <section class="card" id="history">
+    <h2>🕘 Detection History</h2>
+    <p class="muted">Every message check and URL scan is saved by the backend. Search, delete, or export your records.</p>
+    <div class="row">
+      <input type="text" id="historySearch" placeholder="Search history… (text, category, verdict)">
+      <button class="btn ghost" id="historySearchBtn">Search</button>
+      <button class="btn ghost" id="exportBtn">Export CSV</button>
+    </div>
+    <div id="historyList" class="history"><p class="muted">Loading history…</p></div>
+  </section>
+
+  <!-- ======================= AWARENESS ======================= -->
+  <section class="card" id="awareness">
+    <h2>📘 Cybersecurity Awareness</h2>
+    <p class="muted">The most common scams in India right now — and the one habit that stops almost all of them:
+       <strong>pause, and verify through the official app or number yourself.</strong></p>
+    <div class="cards8">
+      <div class="acard"><h3>🔑 OTP Scam</h3><p>Someone asks for the OTP sent to your phone "to verify" something. No bank or company ever needs your OTP — sharing it gives them your account.</p></div>
+      <div class="acard"><h3>💸 UPI Fraud</h3><p>A "buyer" or "refund" sender asks you to approve a collect request or enter your UPI PIN to *receive* money. Receiving money never needs a PIN.</p></div>
+      <div class="acard"><h3>🏦 Banking Scam</h3><p>Fake bank calls/SMS about account blocks, card expiry or "verification". Always check inside the official bank app instead of replying.</p></div>
+      <div class="acard"><h3>💼 Fake Job Offer</h3><p>Easy work-from-home money for liking videos or simple tasks, after a small "registration fee". Real employers never charge a fee to hire you.</p></div>
+      <div class="acard"><h3>🎁 Lottery Scam</h3><p>You "won" a lottery or lucky draw you never entered, but must pay tax/processing fee first. The prize does not exist — only the fee is real.</p></div>
+      <div class="acard"><h3>🪪 KYC Scam</h3><p>"Update KYC or your account/wallet will be frozen today." KYC is done inside the bank branch or official app — never through a link in a message.</p></div>
+      <div class="acard"><h3>📦 Fake Courier</h3><p>Your parcel is "held at customs" and needs a small COD/release payment on a link. Track parcels only on the courier's official website.</p></div>
+      <div class="acard"><h3>🎣 Phishing</h3><p>Look-alike websites and emails that copy banks and big brands to steal passwords and card details. Check the exact domain spelling before typing anything.</p></div>
+    </div>
+
+    <div class="cols">
+      <div>
+        <h3 class="good">Do</h3>
+        <ul>
+          <li>Open your bank's official app yourself to check any alert.</li>
+          <li>Check the sender — real banks use IDs like VM-SBIINB, not random mobile numbers.</li>
+          <li>Call the bank / company on the number printed on your card or their official website.</li>
+          <li>Report fraud fast: call <strong>1930</strong> or visit <strong>cybercrime.gov.in</strong>.</li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="bad">Don't</h3>
+        <ul>
+          <li>Never share OTP, PIN, CVV or passwords — no genuine organisation asks for them.</li>
+          <li>Never click shortened links (bit.ly etc.) in bank or government messages.</li>
+          <li>Never pay a small "fee" to release a prize, parcel or job.</li>
+          <li>Never act in a hurry because a message says "urgent" or "account will be blocked".</li>
+        </ul>
+      </div>
+    </div>
+    <h3>Already clicked or paid?</h3>
+    <p>Do not panic — act fast: 1) Call <strong>1930</strong> (national cyber helpline) immediately.
+       2) Report at <strong>cybercrime.gov.in</strong>. 3) Call your bank and ask them to freeze the transaction.
+       4) Change your passwords from a safe device. Quick reporting in the first hours gives the best chance of getting money back.</p>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap muted">ScamShield AI — built for PromptWars Hackathon. A rule-based + Naive Bayes checker: it explains its reasons, but no tool is 100% perfect. When in doubt, verify through official channels. Suspicious URLs are never opened by this app.</div>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>
