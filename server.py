@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
-from ml_model import ml_scam_probability
+from ml_model import ml_scam_probability, get_evaluation, CHAMPION
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PUBLIC_DIR = os.path.join(BASE_DIR, "public")
@@ -29,6 +29,7 @@ SEED_REPORTS = [
         "id": 1,
         "message": "Dear Customer, your SBI YONO account will be blocked today. Update your KYC at the link sent and share the OTP to reactivate.",
         "category": "Bank KYC Fraud",
+        "state": "Assam",
         "contact": "SMS from VM-SBIKYC",
         "timestamp": "2026-11-18T10:15:00+00:00",
     },
@@ -36,6 +37,7 @@ SEED_REPORTS = [
         "id": 2,
         "message": "Your Aadhaar will be deactivated. Update Aadhaar details immediately on the link below and pay Rs. 10 verification fee.",
         "category": "Government Impersonation",
+        "state": "Delhi",
         "contact": "WhatsApp unknown number",
         "timestamp": "2026-11-18T12:40:00+00:00",
     },
@@ -43,6 +45,7 @@ SEED_REPORTS = [
         "id": 3,
         "message": "Your parcel is held at customs. Pay COD charges of Rs. 499 on this link to release your delivery today.",
         "category": "Delivery / COD Fraud",
+        "state": "Maharashtra",
         "contact": "SMS from AD-DLVCOD",
         "timestamp": "2026-11-19T09:05:00+00:00",
     },
@@ -50,6 +53,7 @@ SEED_REPORTS = [
         "id": 4,
         "message": "Congratulations! Work from home job offer. Earn Rs. 3000 daily by liking videos. Registration fee only Rs. 999, join now.",
         "category": "Fake Job Offer",
+        "state": "Uttar Pradesh",
         "contact": "WhatsApp unknown number",
         "timestamp": "2026-11-19T16:22:00+00:00",
     },
@@ -57,6 +61,7 @@ SEED_REPORTS = [
         "id": 5,
         "message": "Electricity bill overdue. Your connection will be cut tonight at 9 PM. Pay immediately on the link and call this number.",
         "category": "Electricity Bill Fraud",
+        "state": "Karnataka",
         "contact": "SMS from unknown number",
         "timestamp": "2026-11-20T08:31:00+00:00",
     },
@@ -285,6 +290,7 @@ def analyze_message(message, msg_type="SMS", sender=""):
         "category": category,
         "message_type": msg_type,
         "ml_scam_probability": ml_scam_probability(text),  # supporting ML signal
+        "ml_model": CHAMPION.name,  # champion model chosen by F1 on the test split
         "reasons": reasons,
         "advice": advice,
     }
@@ -383,7 +389,12 @@ def compute_stats(data):
     for r in data.get("reports", []):
         cat = REPORT_CATEGORY_MAP.get(r.get("category", ""), r.get("category", "Other/Unknown"))
         category_counts[cat] = category_counts.get(cat, 0) + 1
+    state_counts = {}
+    for r in data.get("reports", []):
+        st = r.get("state") or "Unknown"
+        state_counts[st] = state_counts.get(st, 0) + 1
     stats = dict(data["stats"])
+    stats["state_counts"] = dict(sorted(state_counts.items(), key=lambda kv: -kv[1]))
     stats["reports_count"] = len(data.get("reports", []))
     stats["high_risk_count"] = high_risk_count
     stats["fraud_found"] = sum(1 for h in history if h.get("score", 0) >= 75)  # critical = fraud
@@ -450,6 +461,8 @@ class Handler(BaseHTTPRequestHandler):
                            or q in h.get("verdict", "").lower()
                            or q in h.get("type", "").lower()]
             return self._json(200, {"history": history[:100]})
+        if path == "/api/model-evaluation":
+            return self._json(200, get_evaluation())
         if path == "/api/health":
             return self._json(200, {"status": "ok"})
         return self._static(path)
@@ -519,6 +532,7 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/report":
             message = str(payload.get("message", "")).strip()
             category = str(payload.get("category", "Other Scam")).strip()[:60] or "Other Scam"
+            state = str(payload.get("state", "Unknown")).strip()[:40] or "Unknown"
             contact = str(payload.get("contact", "")).strip()[:80]
             if len(message) < 5:
                 return self._json(400, {"error": "Please paste the scam message you received."})
@@ -528,6 +542,7 @@ class Handler(BaseHTTPRequestHandler):
                     "id": data["next_id"],
                     "message": message[:500],
                     "category": category,
+                    "state": state,
                     "contact": contact,
                     "timestamp": datetime.now(timezone.utc).isoformat(),
                 }

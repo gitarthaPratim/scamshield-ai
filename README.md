@@ -33,6 +33,20 @@ ScamShield AI is a full-stack web app (frontend + backend connected and working)
   chart. No fake statistics.
 - **Detection History** — every check is saved by the backend; you can search, delete
   records, and export them as CSV.
+- **Safety Report download** — after every message check or URL scan, download a
+  plain-text safety report (score, verdict, category, red flags and advice), or copy
+  it to share with family members so they can be warned too.
+- **Screenshot-based Scam Detection** — upload a screenshot of a suspicious
+  message; OCR (Tesseract.js, in the browser) reads the text and fills the
+  Analyzer automatically. If the OCR library cannot load, manual paste still works.
+- **AI Explanation Assistant** — an "Explain Simply" button rewrites every result
+  in very simple language: what the scam is, the trick, what can go wrong, and the
+  safe action — with a one-line summary in Hinglish for family members.
+- **ML Model Lab** — a live model-comparison section: dataset details, the NLP
+  preprocessing pipeline, Accuracy / Precision / Recall / F1 for Naive Bayes vs
+  Logistic Regression vs Random Forest, and the champion model's Confusion Matrix.
+- **Scam Intelligence Map** — a schematic tile map of India that lights up from
+  the states selected in community reports, showing where scams are reported from.
 - **Report a Scam + Community Alerts** — reports are saved by the backend and shown
   live to warn everyone else.
 - **Awareness section** — 8 India-specific scam cards (OTP, UPI, Banking, Fake Job,
@@ -55,32 +69,51 @@ Browser (single page: public/index.html + style.css + app.js)
 Python backend (server.py, standard library http.server only)
   |-- Rule engine     -> explainable score, reasons, category, advice
   |-- URL scanner     -> parses URL text, never fetches it
-  |-- ML model        -> ml_model.py, pure-Python Naive Bayes signal
+  |-- ML engine       -> ml_model.py, NLP preprocessing + Naive Bayes / Logistic Regression / Random Forest (champion signal)
   |-- Persistence     -> data.json (reports, history, counters; auto-seeded)
 ```
 No framework, no database server, no build step: one Python process serves the
 frontend and all APIs on http://localhost:8000.
 
 ## Machine Learning Approach
-`ml_model.py` implements a **Multinomial Naive Bayes text classifier from scratch in
-pure Python** (no scikit-learn, so the project runs with zero installation). At
-startup it trains on a small built-in labelled set (~46 short scam/safe messages
-embedded in the code — no dataset file in the repo). Tokenisation is simple word
-splitting; class probabilities use Laplace (add-1) smoothing; the output is converted
-to a **scam probability (0–100)**.
+`ml_model.py` is a small ML engine written **from scratch in pure Python**
+(no scikit-learn, so the project runs with zero installation):
 
-- **How it is used:** the final risk score stays **rule-based** (stable and fully
-  explainable for judges). The ML probability is displayed next to it as a
-  *supporting signal* ("ML signal: 87% scam-like").
-- **Limits:** the built-in training set is small, so the ML signal is indicative,
-  not authoritative. Future work: train a scikit-learn TF-IDF + Logistic Regression
-  model on a public SMS-spam dataset and ship a `train_model.py` regeneration script
-  (see Future Improvements).
+- **NLP preprocessing:** lowercasing/cleaning, URL normalisation (every link →
+  one LINK token), number normalisation (→ NUM token), tokenisation, stop-word
+  removal, and light stemming.
+- **Larger labelled dataset:** 480 labelled messages (286 scam / 194 safe),
+  generated at startup from scam/safe templates with slot variation (bank names,
+  amounts, links, fees) plus handwritten and deliberately hard borderline samples.
+  No dataset file is needed.
+- **Three models compared:** Multinomial **Naive Bayes**, **Logistic Regression**
+  (gradient descent) and **Random Forest** (decision-tree ensemble) — all
+  implemented from scratch.
+- **Proper evaluation:** the models are compared on a held-out 20% test split
+  (385 train / 95 test) with **Accuracy, Precision, Recall, F1-score and a
+  Confusion Matrix** per model. Live results are shown in the app's **ML Model
+  Lab** section and at `GET /api/model-evaluation`. Current test results:
+
+  | Model | Accuracy | Precision | Recall | F1 |
+  |---|---|---|---|---|
+  | Naive Bayes | 97.9% | 98.2% | 98.2% | 98.2% |
+  | Logistic Regression | 98.9% | 98.3% | 100% | 99.1% |
+  | Random Forest | 98.9% | 100% | 98.2% | 99.1% |
+
+- **Champion model:** the best-F1 model (currently Logistic Regression) provides
+  the **ML signal** shown next to the rule-based score. The final risk score
+  stays **rule-based** — stable and fully explainable for judges.
+- **Limits:** the dataset is template-generated for the hackathon, so metrics
+  reflect that distribution; training on a large public SMS-spam corpus is the
+  natural next step (see Future Improvements).
 
 ## Tech Stack
 - **Backend:** Python 3 standard library only (`http.server`) — zero pip installs
-- **Frontend:** Vanilla HTML, CSS, JavaScript — no CDN, no external fonts, works offline
-- **ML:** Pure-Python Multinomial Naive Bayes (implemented in `ml_model.py`)
+- **Frontend:** Vanilla HTML, CSS, JavaScript — no external fonts; the only CDN use is
+  the optional Tesseract.js OCR library for screenshot detection, which degrades
+  gracefully (manual paste) when offline
+- **ML:** Naive Bayes + Logistic Regression + Random Forest, all implemented from
+  scratch in pure Python (`ml_model.py`), with NLP preprocessing and full evaluation
 - **Storage:** A local JSON file (`data.json`) created and seeded automatically on first run
 
 ## How to Run (Windows)
@@ -105,6 +138,7 @@ No API keys are required. See `.env.example` for the optional settings documenta
 | GET | `/api/history` | Detection history, latest first; optional `?q=text` search |
 | DELETE | `/api/history/<id>` | Deletes one history record |
 | GET | `/api/stats` | `{total_checked, fraud_found, urls_scanned, high_risk_count, reports_count, category_counts}` — all from real app data |
+| GET | `/api/model-evaluation` | Dataset info, NLP preprocessing steps, and Accuracy / Precision / Recall / F1 + Confusion Matrix for all 3 ML models, with the champion marked |
 | GET | `/api/health` | `{"status": "ok"}` |
 
 ## How the Message Scoring Works (for judges / viva)
@@ -129,7 +163,7 @@ _Screenshots placeholder — capture the Analyzer, URL Scanner and Dashboard sec
 ```
 scamshield/
 ├── server.py              # backend: static hosting + all APIs + rule engines + persistence
-├── ml_model.py            # pure-Python Naive Bayes classifier (trained at startup)
+├── ml_model.py            # ML engine: NLP preprocessing, 480-sample dataset, Naive Bayes + Logistic Regression + Random Forest, evaluation
 ├── public/
 │   ├── index.html         # one-page app (Analyzer, URL Scanner, Dashboard, History, Alerts, Awareness)
 │   ├── style.css          # dark navy / electric-blue cybersecurity theme
@@ -144,8 +178,9 @@ scamshield/
 ```
 
 ## Future Improvements
-- Screenshot upload with OCR text extraction, and QR-code image → URL extraction + scanning
-- scikit-learn TF-IDF + Logistic Regression model trained on a public SMS spam dataset
+- QR-code image → URL extraction + scanning (screenshot OCR is already implemented)
+- Train the same three models on a large public SMS-spam dataset (e.g. UCI SMS Spam
+  Collection) and compare against the built-in template dataset
 - SQLite database instead of the JSON file for larger deployments
 - Optional external URL-reputation checks (Google Safe Browsing / VirusTotal) behind API keys
 - Browser extension / WhatsApp share integration for one-tap checking

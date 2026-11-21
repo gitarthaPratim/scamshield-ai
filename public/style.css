@@ -91,4 +91,25 @@ textarea:focus,input:focus,select:focus{outline:2px solid var(--blue);border-col
 .cols li{margin:6px 0 6px 20px}
 .good{color:var(--green)}.bad{color:#ff8a94}
 footer{padding:22px 0 34px;text-align:center;font-size:14px}
+.explain-box{background:var(--card2);border:1px solid var(--cyan);border-left:6px solid var(--cyan);border-radius:8px;padding:16px 18px;margin-top:16px}
+.explain-box h4{color:#fff;margin-bottom:8px;font-size:17px}
+.explain-box p{margin:7px 0}
+.tilemap{display:grid;grid-template-columns:repeat(9,1fr);gap:6px;margin:16px 0 10px}
+.tile{border:1px solid var(--line);border-radius:8px;min-height:62px;padding:5px;font-size:11px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;background:var(--card2);color:var(--muted)}
+.tile b{font-size:17px;color:#fff;line-height:1.1}
+.tile.lvl1{background:#4a2c14;color:#ffd88a}
+.tile.lvl2{background:#7a3410;color:#ffe1c2}
+.tile.lvl3{background:#a11f1f;color:#ffe9e9}
+.tile.lvl4{background:#d61f2c;color:#fff}
+.legend{font-size:13px;color:var(--muted)}
+.mtable{width:100%;border-collapse:collapse;margin:14px 0;font-size:14px}
+.mtable th,.mtable td{border:1px solid var(--line);padding:8px 10px;text-align:center}
+.mtable th{background:var(--card2);color:#fff}
+.mtable td:first-child{text-align:left;font-weight:bold}
+.badge{background:var(--green);color:#06280f;border-radius:12px;padding:1px 8px;font-size:11px;font-weight:bold;margin-left:6px}
+.cm{display:grid;grid-template-columns:110px 1fr 1fr;gap:6px;max-width:560px;margin:10px 0}
+.cm div{border:1px solid var(--line);border-radius:8px;padding:10px;text-align:center;background:var(--card2);font-size:13px}
+.cm .head{background:transparent;border:none;color:var(--muted);display:flex;align-items:center;justify-content:center}
+.cm b{display:block;font-size:20px;color:#fff}
+.steps li{margin:5px 0 5px 20px}
 @media(max-width:640px){.hero h1{font-size:27px}.cols{grid-template-columns:1fr}.topbar nav{display:none}.verdict{font-size:23px}.bar-row{grid-template-columns:110px 1fr 30px}}

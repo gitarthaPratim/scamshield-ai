@@ -14,6 +14,8 @@
       <a href="#checker">Analyzer</a>
       <a href="#url-scanner">URL Scanner</a>
       <a href="#dashboard">Dashboard</a>
+      <a href="#model-lab">ML Model Lab</a>
+      <a href="#scam-map">Scam Map</a>
       <a href="#history">History</a>
       <a href="#alerts">Community Alerts</a>
       <a href="#awareness">Awareness</a>
@@ -55,6 +57,11 @@
     </div>
     <textarea id="msgInput" rows="5" placeholder="Paste the suspicious message here…"></textarea>
     <div class="row">
+      <label class="btn ghost" for="shotInput">📷 Upload Screenshot of the Message</label>
+      <input type="file" id="shotInput" accept="image/*" class="hidden">
+      <span class="muted" id="ocrStatus">Screenshot-based detection: the text is read from your image (OCR) and filled in the box above automatically.</span>
+    </div>
+    <div class="row">
       <button class="btn" id="analyzeBtn">Check This Message</button>
       <button class="btn ghost" id="sampleScamBtn">Try a Sample Scam</button>
       <button class="btn ghost" id="sampleSafeBtn">Try a Safe Message</button>
@@ -78,6 +85,12 @@
       <ul id="reasonsList" class="reasons"></ul>
       <h3>✅ What you should do</h3>
       <ul id="adviceList" class="advice"></ul>
+      <div class="row">
+        <button class="btn" id="downloadMsgReportBtn">⬇ Download Safety Report</button>
+        <button class="btn ghost" id="copyMsgReportBtn">Copy Report to Share</button>
+        <button class="btn ghost" id="explainMsgBtn">🤖 Explain Simply (AI Assistant)</button>
+      </div>
+      <div id="explainBox" class="explain-box hidden"></div>
     </div>
   </section>
 
@@ -105,6 +118,12 @@
       <ul id="urlReasonsList" class="reasons"></ul>
       <h3>✅ What you should do</h3>
       <ul id="urlAdviceList" class="advice"></ul>
+      <div class="row">
+        <button class="btn" id="downloadUrlReportBtn">⬇ Download Safety Report</button>
+        <button class="btn ghost" id="copyUrlReportBtn">Copy Report to Share</button>
+        <button class="btn ghost" id="explainUrlBtn">🤖 Explain Simply (AI Assistant)</button>
+      </div>
+      <div id="urlExplainBox" class="explain-box hidden"></div>
     </div>
   </section>
 
@@ -122,6 +141,33 @@
     <div id="catChart" class="chart"><p class="muted">No data yet — run a check or a scan.</p></div>
   </section>
 
+  <!-- ======================= ML MODEL LAB ======================= -->
+  <section id="model-lab" class="card">
+    <h2>🧪 ML Model Lab — Comparison &amp; Evaluation</h2>
+    <p class="muted">Three machine-learning models are trained in pure Python (no scikit-learn) on a larger
+       labelled dataset of scam and safe messages, after NLP preprocessing. They are compared on a held-out
+       test split the models never trained on. The best model (highest F1-score) becomes the champion and
+       provides the ML signal in the Analyzer.</p>
+    <p id="datasetInfo" class="muted">Loading evaluation…</p>
+    <div id="modelTableWrap"></div>
+    <h3>Confusion Matrix — champion model (test split)</h3>
+    <div id="confMatrix"></div>
+    <h3>NLP preprocessing pipeline</h3>
+    <ol id="preprocessList" class="steps"></ol>
+    <p class="muted" id="evalNote"></p>
+  </section>
+
+  <!-- ======================= SCAM INTELLIGENCE MAP ======================= -->
+  <section id="scam-map" class="card">
+    <h2>🗺️ Scam Intelligence Map</h2>
+    <p class="muted">Where are scams being reported from? This map is built live from the community reports
+       saved in this app (including the seed demo reports). A hotter tile means more reports from that state.
+       It is a schematic tile map — one square per state, placed in its approximate geographic position.</p>
+    <div id="tileMap" class="tilemap"></div>
+    <p class="legend">⬜ No reports yet &nbsp; 🟧 Few reports &nbsp; 🟥 More reports &nbsp; 🚨 Most reports</p>
+    <p class="muted" id="mapNote"></p>
+  </section>
+
   <!-- ======================= REPORT ======================= -->
   <section class="card" id="report">
     <h2>📢 Report a Scam</h2>
@@ -137,6 +183,39 @@
           <option>Electricity Bill Fraud</option>
           <option>Lottery / Prize Fraud</option>
           <option>Other Scam</option>
+        </select>
+        <select id="reportState">
+          <option>Assam</option>
+          <option>Andhra Pradesh</option>
+          <option>Arunachal Pradesh</option>
+          <option>Bihar</option>
+          <option>Chhattisgarh</option>
+          <option>Delhi</option>
+          <option>Goa</option>
+          <option>Gujarat</option>
+          <option>Haryana</option>
+          <option>Himachal Pradesh</option>
+          <option>Jammu &amp; Kashmir</option>
+          <option>Jharkhand</option>
+          <option>Karnataka</option>
+          <option>Kerala</option>
+          <option>Madhya Pradesh</option>
+          <option>Maharashtra</option>
+          <option>Manipur</option>
+          <option>Meghalaya</option>
+          <option>Mizoram</option>
+          <option>Nagaland</option>
+          <option>Odisha</option>
+          <option>Punjab</option>
+          <option>Rajasthan</option>
+          <option>Sikkim</option>
+          <option>Tamil Nadu</option>
+          <option>Telangana</option>
+          <option>Tripura</option>
+          <option>Uttar Pradesh</option>
+          <option>Uttarakhand</option>
+          <option>West Bengal</option>
+          <option>Other / Unknown</option>
         </select>
         <input type="text" id="reportContact" placeholder="Where did it come from? (optional) e.g. SMS from VM-XXXXXX">
       </div>
@@ -211,6 +290,7 @@
 <footer>
   <div class="wrap muted">ScamShield AI — built for PromptWars Hackathon. A rule-based + Naive Bayes checker: it explains its reasons, but no tool is 100% perfect. When in doubt, verify through official channels. Suspicious URLs are never opened by this app.</div>
 </footer>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
