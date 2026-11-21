@@ -102,7 +102,7 @@ $("analyzeBtn").addEventListener("click", async () => {
   $("analyzeError").textContent = "";
   if (message.length < 5) { $("analyzeError").textContent = "Please paste a message first."; return; }
   try {
-    const res = await fetch("/api/analyze", {
+    const res = await fetch("/svc/analyze", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message, type: $("msgType").value, sender: $("senderInput").value.trim() })
@@ -142,7 +142,7 @@ $("scanBtn").addEventListener("click", async () => {
   $("urlError").textContent = "";
   if (!url) { $("urlError").textContent = "Please paste a URL first."; return; }
   try {
-    const res = await fetch("/api/scan-url", {
+    const res = await fetch("/svc/scan-url", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ url })
@@ -189,7 +189,7 @@ $("reportForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   $("reportOk").textContent = ""; $("reportError").textContent = "";
   try {
-    const res = await fetch("/api/report", {
+    const res = await fetch("/svc/report", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -212,7 +212,7 @@ $("reportForm").addEventListener("submit", async (e) => {
 /* ---------------- Community Alerts ---------------- */
 async function loadAlerts() {
   try {
-    const res = await fetch("/api/reports");
+    const res = await fetch("/svc/reports");
     const data = await res.json();
     if (!data.reports.length) { $("alertsList").innerHTML = '<p class="muted">No reports yet.</p>'; return; }
     $("alertsList").innerHTML = data.reports.map(r => {
@@ -227,7 +227,7 @@ async function loadAlerts() {
 /* ---------------- Dashboard / Stats ---------------- */
 async function loadStats() {
   try {
-    const res = await fetch("/api/stats");
+    const res = await fetch("/svc/stats");
     const s = await res.json();
     $("statChecked").textContent = s.total_checked;
     $("statHigh").textContent = (s.high_risk_count != null ? s.high_risk_count : s.fraud_found);
@@ -249,7 +249,7 @@ async function loadStats() {
 async function loadHistory() {
   const q = $("historySearch").value.trim();
   try {
-    const res = await fetch("/api/history" + (q ? "?q=" + encodeURIComponent(q) : ""));
+    const res = await fetch("/svc/history" + (q ? "?q=" + encodeURIComponent(q) : ""));
     const data = await res.json();
     if (!data.history.length) { $("historyList").innerHTML = '<p class="muted">No history records found.</p>'; return; }
     $("historyList").innerHTML = data.history.map(h => {
@@ -271,7 +271,7 @@ async function loadHistory() {
 
 async function deleteHistory(id) {
   try {
-    const res = await fetch("/api/history/" + id, { method: "DELETE" });
+    const res = await fetch("/svc/history/" + id, { method: "DELETE" });
     if (!res.ok) { const d = await res.json(); alert(d.error || "Could not delete."); return; }
     loadHistory(); loadStats();
   } catch (e) { alert("Could not reach the server. Is server.py running?"); }
@@ -282,7 +282,7 @@ $("historySearch").addEventListener("keydown", (e) => { if (e.key === "Enter") l
 
 $("exportBtn").addEventListener("click", async () => {
   try {
-    const res = await fetch("/api/history");
+    const res = await fetch("/svc/history");
     const data = await res.json();
     const rows = [["id", "timestamp", "type", "score", "verdict", "category", "input_preview"]];
     data.history.forEach(h => rows.push([h.id, h.timestamp, h.type, h.score, h.verdict, h.category, h.input_preview]));
@@ -445,7 +445,7 @@ function renderMap(stateCounts) {
 /* ---------------- ML Model Lab ---------------- */
 async function loadEvaluation() {
   try {
-    const res = await fetch("/api/model-evaluation");
+    const res = await fetch("/svc/model-evaluation");
     const ev = await res.json();
     const d = ev.dataset;
     $("datasetInfo").innerHTML =

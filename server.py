@@ -445,15 +445,15 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed = urlparse(self.path)
         path = parsed.path
-        if path == "/api/reports":
+        if path == "/svc/reports":
             with _lock:
                 data = load_data()
             return self._json(200, {"reports": data["reports"][:20]})
-        if path == "/api/stats":
+        if path == "/svc/stats":
             with _lock:
                 data = load_data()
             return self._json(200, compute_stats(data))
-        if path == "/api/history":
+        if path == "/svc/history":
             q = (parse_qs(parsed.query).get("q", [""])[0] or "").strip().lower()
             with _lock:
                 data = load_data()
@@ -465,15 +465,15 @@ class Handler(BaseHTTPRequestHandler):
                            or q in h.get("verdict", "").lower()
                            or q in h.get("type", "").lower()]
             return self._json(200, {"history": history[:100]})
-        if path == "/api/model-evaluation":
+        if path == "/svc/model-evaluation":
             return self._json(200, get_evaluation())
-        if path == "/api/health":
+        if path == "/svc/health":
             return self._json(200, {"status": "ok"})
         return self._static(path)
 
     def do_DELETE(self):
         path = urlparse(self.path).path
-        m = re.match(r"^/api/history/(\d+)$", path)
+        m = re.match(r"^/svc/history/(\d+)$", path)
         if not m:
             return self._json(404, {"error": "not found"})
         hid = int(m.group(1))
@@ -506,7 +506,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         path = urlparse(self.path).path
         payload = self._read_json()
-        if path == "/api/analyze":
+        if path == "/svc/analyze":
             message = str(payload.get("message", "")).strip()
             if len(message) < 5:
                 return self._json(400, {"error": "Please paste a longer message to check."})
@@ -521,7 +521,7 @@ class Handler(BaseHTTPRequestHandler):
                 add_history(data, "email" if msg_type == "Email" else "message", message, result)
                 save_data(data)
             return self._json(200, result)
-        if path == "/api/scan-url":
+        if path == "/svc/scan-url":
             raw_url = str(payload.get("url", "")).strip()
             if len(raw_url) < 4 or "." not in raw_url:
                 return self._json(400, {"error": "Please enter a valid-looking URL (it must contain a dot, e.g. example.com)."})
@@ -533,7 +533,7 @@ class Handler(BaseHTTPRequestHandler):
                 add_history(data, "url", raw_url, result)
                 save_data(data)
             return self._json(200, result)
-        if path == "/api/report":
+        if path == "/svc/report":
             message = str(payload.get("message", "")).strip()
             category = str(payload.get("category", "Other Scam")).strip()[:60] or "Other Scam"
             state = str(payload.get("state", "Unknown")).strip()[:40] or "Unknown"
