@@ -555,7 +555,7 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     load_data()  # create / seed data.json on first run
-    server = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
+    server = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
     print(f"ScamShield AI is running at http://localhost:{PORT}")
     print("Press Ctrl+C to stop.")
     try:
