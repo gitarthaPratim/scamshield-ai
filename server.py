@@ -442,7 +442,34 @@ class Handler(BaseHTTPRequestHandler):
         except (json.JSONDecodeError, UnicodeDecodeError):
             return {}
 
+    def _fix_path(self):
+        # On Vercel, vercel.json rewrites route every API request to the single
+        # api/index.py function using the destination path, so the original
+        # route is passed in the "__r" query parameter instead. Restore it here.
+        # Everywhere else (local run, Render) "__r" is absent and nothing changes.
+        parsed = urlparse(self.path)
+        qs = parse_qs(parsed.query)
+        r = (qs.get("__r", [""])[0] or "").strip()
+        if not r:
+            return
+        routes = {
+            "health": "/api/health",
+            "analyze": "/api/analyze",
+            "scan-url": "/api/scan-url",
+            "report": "/api/report",
+            "reports": "/api/reports",
+            "stats": "/api/stats",
+            "history": "/api/history",
+            "model-evaluation": "/api/model-evaluation",
+        }
+        if r == "history-delete":
+            hid = (qs.get("__id", [""])[0] or "").strip()
+            self.path = "/api/history/" + hid
+        elif r in routes:
+            self.path = routes[r]
+
     def do_GET(self):
+        self._fix_path()
         parsed = urlparse(self.path)
         path = parsed.path
         if path == "/api/reports":
@@ -472,6 +499,7 @@ class Handler(BaseHTTPRequestHandler):
         return self._static(path)
 
     def do_DELETE(self):
+        self._fix_path()
         path = urlparse(self.path).path
         m = re.match(r"^/api/history/(\d+)$", path)
         if not m:
@@ -504,6 +532,7 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_POST(self):
+        self._fix_path()
         path = urlparse(self.path).path
         payload = self._read_json()
         if path == "/api/analyze":
