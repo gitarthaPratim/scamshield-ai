@@ -92,7 +92,7 @@ frontend and all APIs on http://localhost:8000.
 - **Proper evaluation:** the models are compared on a held-out 20% test split
   (385 train / 95 test) with **Accuracy, Precision, Recall, F1-score and a
   Confusion Matrix** per model. Live results are shown in the app's **ML Model
-  Lab** section and at `GET /svc/model-evaluation`. Current test results:
+  Lab** section and at `GET /api/model-evaluation`. Current test results:
 
   | Model | Accuracy | Precision | Recall | F1 |
   |---|---|---|---|---|
@@ -131,15 +131,15 @@ No API keys are required. See `.env.example` for the optional settings documenta
 ## APIs
 | Method | Endpoint | What it does |
 |---|---|---|
-| POST | `/svc/analyze` | Body `{"message": "...", "type": "SMS\|WhatsApp\|Email", "sender": "..."}` → `{score, verdict, band, category, ml_scam_probability, reasons[{rule, points, detail, strength}], advice[]}` |
-| POST | `/svc/scan-url` | Body `{"url": "..."}` → `{score, verdict, band, category, reasons[], advice[]}` (URL is never fetched) |
-| POST | `/svc/report` | Body `{"message": "...", "category": "...", "contact": "..."}` → saves a community report |
-| GET | `/svc/reports` | Latest community alerts |
-| GET | `/svc/history` | Detection history, latest first; optional `?q=text` search |
-| DELETE | `/svc/history/<id>` | Deletes one history record |
-| GET | `/svc/stats` | `{total_checked, fraud_found, urls_scanned, high_risk_count, reports_count, category_counts}` — all from real app data |
-| GET | `/svc/model-evaluation` | Dataset info, NLP preprocessing steps, and Accuracy / Precision / Recall / F1 + Confusion Matrix for all 3 ML models, with the champion marked |
-| GET | `/svc/health` | `{"status": "ok"}` |
+| POST | `/api/analyze` | Body `{"message": "...", "type": "SMS\|WhatsApp\|Email", "sender": "..."}` → `{score, verdict, band, category, ml_scam_probability, reasons[{rule, points, detail, strength}], advice[]}` |
+| POST | `/api/scan-url` | Body `{"url": "..."}` → `{score, verdict, band, category, reasons[], advice[]}` (URL is never fetched) |
+| POST | `/api/report` | Body `{"message": "...", "category": "...", "contact": "..."}` → saves a community report |
+| GET | `/api/reports` | Latest community alerts |
+| GET | `/api/history` | Detection history, latest first; optional `?q=text` search |
+| DELETE | `/api/history/<id>` | Deletes one history record |
+| GET | `/api/stats` | `{total_checked, fraud_found, urls_scanned, high_risk_count, reports_count, category_counts}` — all from real app data |
+| GET | `/api/model-evaluation` | Dataset info, NLP preprocessing steps, and Accuracy / Precision / Recall / F1 + Confusion Matrix for all 3 ML models, with the champion marked |
+| GET | `/api/health` | `{"status": "ok"}` |
 
 ## How the Message Scoring Works (for judges / viva)
 Each rule adds explainable points, capped at 100:
